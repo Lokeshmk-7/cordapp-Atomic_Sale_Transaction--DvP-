@@ -15,6 +15,11 @@ buildscript {
         log4j_version = constants.getProperty("log4jVersion")
         slf4j_version = constants.getProperty("slf4jVersion")
         corda_platform_version = constants.getProperty("platformVersion").toInteger()
+        guava_version = constants.getProperty("guavaVersion")
+
+        tokens_release_version = '1.2'
+        tokens_release_group = 'com.r3.corda.lib.tokens'
+
         //springboot
         spring_boot_version = '2.0.2.RELEASE'
         spring_boot_gradle_plugin_version = '2.0.2.RELEASE'
@@ -24,6 +29,7 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
+        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda' }
         maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-releases' }
     }
 
@@ -37,26 +43,32 @@ buildscript {
 }
 
 allprojects {
-    apply from: "${rootProject.projectDir}/repositories.gradle"
     apply plugin: 'java'
 
     repositories {
         mavenLocal()
         jcenter()
         mavenCentral()
-        maven { url 'https://software.r3.com/artifactory/corda' }
+        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda' }
         maven { url 'https://jitpack.io' }
+        // Can be removed post-release - used to get nightly snapshot build.
+        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-lib' }
+        maven { url 'https://ci-artifactory.corda.r3cev.com/artifactory/corda-lib-dev' }
+        maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
 
     tasks.withType(JavaCompile) {
         options.compilerArgs << "-parameters" // Required by Corda's serialisation framework.
     }
 
+    dependencies {
+        compile "com.google.guava:guava:$guava_version"
+    }
+
     jar {
         // This makes the JAR's SHA-256 hash repeatable.
         preserveFileTimestamps = false
         reproducibleFileOrder = true
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }
 
@@ -76,8 +88,10 @@ sourceSets {
 }
 
 dependencies {
+    testCompile "junit:junit:$junit_version"
+
     // Corda dependencies.
-    cordaCompile "$corda_core_release_group:corda-core:$corda_core_release_version"
+    cordaCompile "$corda_release_group:corda-core:$corda_release_version"
     cordaCompile "$corda_release_group:corda-node-api:$corda_release_version"
     cordaRuntime "$corda_release_group:corda:$corda_release_version"
 
@@ -85,9 +99,15 @@ dependencies {
     cordapp project(":workflows")
     cordapp project(":contracts")
 
+    // For logging
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4j_version}"
     cordaCompile "org.apache.logging.log4j:log4j-web:${log4j_version}"
     cordaCompile "org.slf4j:jul-to-slf4j:$slf4j_version"
+
+    // Token SDK dependencies.
+    cordapp "$tokens_release_group:tokens-contracts:$tokens_release_version"
+    cordapp "$tokens_release_group:tokens-workflows:$tokens_release_version"
+    //cordapp "$tokens_release_group:tokens-money:$tokens_release_version"
 }
 
 cordapp {
@@ -99,7 +119,7 @@ cordapp {
     }
 }
 
-task ganache {
+/*task ganache {
     subprojects {
         if (it.project.name != "clients") {
             dependsOn jar
@@ -111,10 +131,13 @@ task ganache {
             }
         }
     }
-}
+}*/
 
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
     nodeDefaults {
+        cordapp("$tokens_release_group:tokens-contracts:$tokens_release_version")
+        cordapp("$tokens_release_group:tokens-workflows:$tokens_release_version")
+        //cordapp("$tokens_release_group:tokens-money:$tokens_release_version")
         projectCordapp {
             deploy = false
         }
@@ -145,6 +168,15 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         rpcSettings {
             address("localhost:10009")
             adminAddress("localhost:10049")
+        }
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
+        name "O=CurrencyIssuer,L=New York,C=US"
+        p2pPort 10012
+        rpcSettings {
+            address("localhost:10007")
+            adminAddress("localhost:10047")
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
