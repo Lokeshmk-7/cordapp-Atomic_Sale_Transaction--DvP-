@@ -9,6 +9,7 @@ import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens;
 import com.template.states.InstrumentState;
 import net.corda.core.contracts.Amount;
 import net.corda.core.contracts.StateAndRef;
+import net.corda.core.contracts.UniqueIdentifier;
 import net.corda.core.flows.FlowException;
 import net.corda.core.flows.FlowLogic;
 import net.corda.core.flows.InitiatingFlow;
@@ -55,7 +56,7 @@ public class IssueInstrumentFlow extends FlowLogic<String> {
 
         IssuedTokenType issuedTokenType = new IssuedTokenType(getOurIdentity(), tokenPointer);
 
-        NonFungibleToken nonFungibleToken = new NonFungibleToken(issuedTokenType, owner, instrumentState.getLinearId(), TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenPointer));
+        NonFungibleToken nonFungibleToken = new NonFungibleToken(issuedTokenType, owner, new UniqueIdentifier(), TransactionUtilitiesKt.getAttachmentIdForGenericParam(tokenPointer));
 
         SignedTransaction signedTransaction =  subFlow(new IssueTokens(ImmutableList.of(nonFungibleToken)));
 

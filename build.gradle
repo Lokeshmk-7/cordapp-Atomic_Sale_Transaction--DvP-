@@ -108,6 +108,8 @@ dependencies {
     cordapp "$tokens_release_group:tokens-contracts:$tokens_release_version"
     cordapp "$tokens_release_group:tokens-workflows:$tokens_release_version"
     //cordapp "$tokens_release_group:tokens-money:$tokens_release_version"
+    //cordapp "$tokens_release_group:tokens-selection:$tokens_release_version"
+    //cordapp "$tokens_release_group:tokens-money:$tokens_release_version"
 }
 
 cordapp {
@@ -171,12 +173,13 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: ['jar']) {
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
+
     node {
         name "O=CurrencyIssuer,L=New York,C=US"
-        p2pPort 10012
+        p2pPort 10022
         rpcSettings {
-            address("localhost:10007")
-            adminAddress("localhost:10047")
+            address("localhost:10017")
+            adminAddress("localhost:10057")
         }
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }

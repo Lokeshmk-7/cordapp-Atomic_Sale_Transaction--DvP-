@@ -52,6 +52,6 @@ public class CreateInstrumentFlow extends FlowLogic<String> {
 
         subFlow(new CreateEvolvableTokens(transactionState));
 
-        return "Instrument "+ this.name + " token created with batch no. " + this.batchNo + " and uuid " + uniqueIdentifier + " ." ;
+        return "Instrument "+ uniqueIdentifier + " token created with batch no. " + this.batchNo + " and uuid " + uniqueIdentifier + " ." ;
     }
 }
