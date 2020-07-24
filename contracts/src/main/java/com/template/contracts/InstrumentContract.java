@@ -15,14 +15,6 @@ import static net.corda.core.contracts.ContractsDSL.requireThat;
 public class InstrumentContract extends EvolvableTokenContract implements Contract {
 
     @Override
-    public void verify(@NotNull LedgerTransaction tx) throws IllegalArgumentException{
-
-        InstrumentState outputState = (InstrumentState) tx.getOutput(0);
-        if (! (tx.getCommand(0).getSigners().contains(outputState.getIssuer().getOwningKey())) )
-            throw new IllegalArgumentException("Instrument issuer must be a signer");
-    }
-
-    @Override
     public void additionalCreateChecks(@NotNull LedgerTransaction tx) {
 
         List<ContractState> outputState = tx.getOutputStates();
@@ -41,6 +33,9 @@ public class InstrumentContract extends EvolvableTokenContract implements Contra
             req.using("Valuation while creatio must be greater than 0.", instrumentState.getValuation().getQuantity() > 0);
             req.using("Years of Warranty must be more than 0.", instrumentState.getWarranty() > 0);
             req.using("Resale valuation must be equal to valuation while creating instrument", instrumentState.getValuation().getQuantity() == instrumentState.getResaleValuation().getQuantity());
+
+            if (! (tx.getCommand(0).getSigners().contains(((InstrumentState) outputState.get(0)).getIssuer().getOwningKey())) )
+                throw new IllegalArgumentException("Instrument issuer must be a signer");
 
             return null;
         });
@@ -64,6 +59,9 @@ public class InstrumentContract extends EvolvableTokenContract implements Contra
             int currentYear = localDate.getYear();
             req.using("Valuation while creatio must be greater than 0.", instrumentState.getValuation().getQuantity() > 0);
             req.using("Resale Valuation while creatio must be greater than 0.", instrumentState.getResaleValuation().getQuantity() > 0);
+
+            if (! (tx.getCommand(0).getSigners().contains(((InstrumentState) outputState.get(0)).getIssuer().getOwningKey())) )
+                throw new IllegalArgumentException("Instrument issuer must be a signer");
 
             return null;
         });
