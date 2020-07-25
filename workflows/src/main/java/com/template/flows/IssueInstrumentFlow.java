@@ -24,22 +24,11 @@ import java.util.Currency;
 public class IssueInstrumentFlow extends FlowLogic<String> {
 
     private final Party owner;
-
     private final String name;
-    private final int yom;
-    private final String batchNo;
-    private final Amount<Currency> valuation;
-    private final int warranty;
-    private final Amount<Currency> resaleValuation;
 
-    public IssueInstrumentFlow(String name, int yom, String batchNo, Amount<Currency> valuation, int warranty, Amount<Currency> resaleValuation, Party owner) {
+    public IssueInstrumentFlow(String name, Party owner) {
         this.owner = owner;
         this.name = name;
-        this.yom = yom;
-        this.batchNo = batchNo;
-        this.valuation = valuation;
-        this.warranty = warranty;
-        this.resaleValuation = resaleValuation;
     }
 
     @Override
